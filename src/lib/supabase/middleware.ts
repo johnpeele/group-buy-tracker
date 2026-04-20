@@ -32,7 +32,12 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const url = request.nextUrl.clone();
-  const isAuthRoute = url.pathname.startsWith("/login") || url.pathname.startsWith("/invite");
+  const isAuthRoute =
+    url.pathname.startsWith("/login") ||
+    url.pathname.startsWith("/invite") ||
+    url.pathname.startsWith("/forgot-password") ||
+    url.pathname.startsWith("/update-password") ||
+    url.pathname.startsWith("/auth/callback");
   const isAdminRoute = url.pathname.startsWith("/admin");
 
   // Redirect unauthenticated users to login
