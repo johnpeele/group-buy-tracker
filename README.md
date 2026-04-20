@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Group Buy Tracker
 
-## Getting Started
+A private group buy management app for tracking peptide buy rounds, commitments, and payments.
 
-First, run the development server:
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) 20+
+- [pnpm](https://pnpm.io/installation)
+- [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started) (`brew install supabase/tap/supabase`)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (required for local Supabase)
+
+## Local setup
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.local.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open `.env.local` and fill in your values. For local development, use the keys that `supabase start` prints (see step 3).
 
-## Learn More
+### 3. Start local Supabase
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+supabase start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This boots a local Postgres + Auth + API stack in Docker and runs all migrations automatically. When it finishes it prints your local `API URL`, `anon key`, and `service_role key` — paste those into `.env.local`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key from output>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key from output>
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-## Deploy on Vercel
+### 4. Bootstrap your admin account
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The seed migration promotes a specific email address to admin. Since your email isn't in the seed, use the Supabase local dashboard after signing up:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Run the dev server (step 5) and sign up at `/login` with your email.
+2. Open the local Supabase dashboard at [http://127.0.0.1:54323](http://127.0.0.1:54323).
+3. Go to **Table Editor → profiles** and set your row's `role` to `admin`.
+
+Alternatively, run this in the SQL editor:
+
+```sql
+UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com';
+```
+
+### 5. Run the dev server
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Database migrations
+
+Migrations live in `supabase/migrations/`. To apply new migrations to your local stack:
+
+```bash
+supabase db reset   # wipes local DB and replays all migrations from scratch
+# or
+supabase migration up   # applies only new migrations
+```
+
+To generate a new migration after making schema changes in the dashboard:
+
+```bash
+supabase db diff -f your_migration_name
+```
+
+## Stopping local Supabase
+
+```bash
+supabase stop
+```
+
+Add `--no-backup` if you don't need to preserve local data between restarts.
+
+## Project structure
+
+```
+src/
+  app/
+    (app)/        # authenticated routes (dashboard, history, admin)
+    (auth)/       # login / signup
+  components/     # shared UI components
+  lib/
+    actions/      # server actions
+    supabase/     # typed client helpers
+supabase/
+  migrations/     # SQL migrations (committed, applied in order)
+```
