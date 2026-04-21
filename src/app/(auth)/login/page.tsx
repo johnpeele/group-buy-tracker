@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import Link from "next/link";
+import { useState, useTransition, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,9 +35,7 @@ function GoogleIcon() {
 }
 
 function LoginForm() {
-  const [mode, setMode] = useState<"password" | "magic">("password");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [magicSent, setMagicSent] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -53,28 +49,12 @@ function LoginForm() {
       ? "Something went wrong during sign in. Please try again."
       : null;
 
-  function handlePasswordSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    startTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast.error("Incorrect email or password. Try again.");
-        return;
-      }
-      router.push("/");
-      router.refresh();
-    });
-  }
-
   function handleGoogleSignIn() {
     startTransition(async () => {
       const supabase = createClient();
       await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
     });
   }
@@ -107,7 +87,6 @@ function LoginForm() {
           </p>
         )}
 
-        {/* Google OAuth */}
         <Button
           type="button"
           variant="outline"
@@ -125,7 +104,6 @@ function LoginForm() {
           <Separator className="flex-1" />
         </div>
 
-        {/* Magic link sent confirmation */}
         {magicSent ? (
           <div className="space-y-3 text-center py-2">
             <p className="text-sm font-medium">Check your email</p>
@@ -135,75 +113,17 @@ function LoginForm() {
             <button
               type="button"
               className={`${tokens.type.muted} hover:text-foreground underline underline-offset-4 transition-colors text-sm`}
-              onClick={() => { setMagicSent(false); setMode("password"); }}
+              onClick={() => { setMagicSent(false); setEmail(""); }}
             >
-              Back to sign in
+              Use a different email
             </button>
           </div>
-        ) : mode === "password" ? (
-          /* Password sign-in */
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+        ) : (
+          <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="min-h-[44px]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className={`text-xs ${tokens.type.muted} hover:text-foreground hover:underline underline-offset-4 transition-colors`}
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="min-h-[44px]"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full min-h-[44px]"
-            >
-              {isPending ? "Signing in..." : "Sign in"}
-            </Button>
-
-            <p className="text-center">
-              <button
-                type="button"
-                className={`text-xs ${tokens.type.muted} hover:text-foreground hover:underline underline-offset-4 transition-colors`}
-                onClick={() => { setMode("magic"); setMagicSent(false); }}
-              >
-                Sign in with a magic link instead
-              </button>
-            </p>
-          </form>
-        ) : (
-          /* Magic link sign-in */
-          <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="magic-email">Email</Label>
-              <Input
-                id="magic-email"
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
@@ -221,16 +141,6 @@ function LoginForm() {
             >
               {isPending ? "Sending..." : "Send magic link"}
             </Button>
-
-            <p className="text-center">
-              <button
-                type="button"
-                className={`text-xs ${tokens.type.muted} hover:text-foreground hover:underline underline-offset-4 transition-colors`}
-                onClick={() => setMode("password")}
-              >
-                Sign in with password instead
-              </button>
-            </p>
           </form>
         )}
 

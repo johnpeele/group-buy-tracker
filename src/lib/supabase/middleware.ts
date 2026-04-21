@@ -35,8 +35,6 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute =
     url.pathname.startsWith("/login") ||
     url.pathname.startsWith("/invite") ||
-    url.pathname.startsWith("/forgot-password") ||
-    url.pathname.startsWith("/update-password") ||
     url.pathname.startsWith("/auth/callback");
   const isAdminRoute = url.pathname.startsWith("/admin");
 
