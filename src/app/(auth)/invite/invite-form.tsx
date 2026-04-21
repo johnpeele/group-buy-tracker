@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { acceptInvite } from "@/lib/actions/invites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +16,10 @@ interface InviteFormProps {
 
 export function InviteForm({ token }: InviteFormProps) {
   const [displayName, setDisplayName] = useState("");
-  const [password, setPassword] = useState("");
   const [isPending, startTransition] = useTransition();
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenEmail, setTokenEmail] = useState<string | null>(null);
-  const router = useRouter();
 
-  // Validate token on mount
   useEffect(() => {
     if (!token) {
       setTokenValid(false);
@@ -68,29 +64,15 @@ export function InviteForm({ token }: InviteFormProps) {
     e.preventDefault();
 
     startTransition(async () => {
-      const result = await acceptInvite(token, displayName.trim(), password);
+      const result = await acceptInvite(token, displayName.trim());
 
-      if (!result.success) {
+      if (!result.success || !result.actionLink) {
         toast.error(result.error ?? "Something went wrong. Try again.");
         return;
       }
 
-      // Sign in with the new credentials
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: result.email!,
-        password,
-      });
-
-      if (error) {
-        toast.error("Account created but sign-in failed. Try logging in manually.");
-        router.push("/login");
-        return;
-      }
-
-      toast.success("Welcome to BatchKit!");
-      router.push("/");
-      router.refresh();
+      // Redirect to the generated magic link — Supabase processes it and signs the user in
+      window.location.href = result.actionLink;
     });
   }
 
@@ -119,31 +101,12 @@ export function InviteForm({ token }: InviteFormProps) {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Choose a password</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="8+ characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={8}
-              required
-              className="min-h-[44px]"
-              aria-describedby="password-hint"
-            />
-            <p id="password-hint" className={tokens.type.muted}>
-              Minimum 8 characters.
-            </p>
-          </div>
-
           <Button
             type="submit"
-            disabled={isPending || !displayName.trim() || password.length < 8}
+            disabled={isPending || !displayName.trim()}
             className="w-full min-h-[44px]"
           >
-            {isPending ? "Creating account..." : "Create account"}
+            {isPending ? "Setting up your account..." : "Create account"}
           </Button>
         </form>
       </CardContent>

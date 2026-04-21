@@ -92,16 +92,6 @@ export default async function DashboardPage() {
                           <p className={tokens.type.muted}>{weightLabel}</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          {myKits !== undefined && (
-                            <span
-                              className={cn(
-                                tokens.type.mono,
-                                "text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full"
-                              )}
-                            >
-                              {myKits} kit{myKits !== 1 ? "s" : ""}
-                            </span>
-                          )}
                           <StatusBadge status={round.status} />
                           <ChevronRight
                             size={16}
@@ -117,6 +107,16 @@ export default async function DashboardPage() {
                         moq={round.moq}
                         buyRoundId={round.id}
                       />
+
+                      {/* My commitment */}
+                      {myKits !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span className={tokens.type.muted}>My commitment</span>
+                          <span className={cn(tokens.type.mono, "text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full")}>
+                            {myKits} kit{myKits !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </Link>

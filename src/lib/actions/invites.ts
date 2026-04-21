@@ -56,8 +56,6 @@ export async function sendInvite(formData: FormData): Promise<ActionResult> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const inviteUrl = `${appUrl}/invite?token=${invite.token}`;
 
-  // Use Supabase admin to send a custom email (or use inviteUserByEmail as the transport)
-  // We send them to our custom /invite page, not Supabase's default flow
   const { error: emailError } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: inviteUrl,
     data: { invite_token: invite.token },
@@ -111,20 +109,19 @@ export async function resendInvite(invite_id: string): Promise<ActionResult> {
 
 /**
  * Accept an invite. Called from the /invite page.
- * Unauthenticated context — uses service role via RPC.
+ * Creates the member profile and generates a magic link for immediate sign-in.
  */
 export async function acceptInvite(
   token: string,
-  display_name: string,
-  password: string
-): Promise<ActionResult & { email?: string }> {
-  if (!token || !display_name.trim() || !password || password.length < 8) {
-    return { success: false, error: "Please provide your name and a password (8+ characters)." };
+  display_name: string
+): Promise<ActionResult & { actionLink?: string }> {
+  if (!token || !display_name.trim()) {
+    return { success: false, error: "Please provide your name." };
   }
 
   const supabase = await createClient();
 
-  // Validate token first
+  // Validate token
   const { data: tokenCheck } = await supabase.rpc("check_invite_token", { p_token: token });
 
   if (!tokenCheck?.valid) {
@@ -136,23 +133,7 @@ export async function acceptInvite(
 
   const email = tokenCheck.email as string;
 
-  // Create the auth user with the provided password
-  const adminClient = await createAdminClient();
-  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { display_name },
-  });
-
-  if (authError) {
-    // User might already exist (e.g. Supabase invite already created them)
-    if (!authError.message.includes("already been registered")) {
-      return { success: false, error: `Account creation failed: ${authError.message}` };
-    }
-  }
-
-  // Accept the invite and create profile
+  // Accept invite and upsert profile with the display_name from the form
   const { data: result } = await supabase.rpc("accept_invite", {
     p_token: token,
     p_display_name: display_name.trim(),
@@ -162,5 +143,19 @@ export async function acceptInvite(
     return { success: false, error: "Failed to complete signup. Please try again." };
   }
 
-  return { success: true, email };
+  // Generate a magic link so the user is signed in immediately after the invite form
+  const adminClient = await createAdminClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+  const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+    type: "magiclink",
+    email,
+    options: { redirectTo: `${appUrl}/auth/callback` },
+  });
+
+  if (linkError || !linkData?.properties?.action_link) {
+    return { success: false, error: "Account created but sign-in link failed. Try signing in with a magic link." };
+  }
+
+  return { success: true, actionLink: linkData.properties.action_link };
 }

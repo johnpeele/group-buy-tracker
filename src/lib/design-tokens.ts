@@ -7,7 +7,7 @@
 export const tokens = {
   // App identity — rename here, updates everywhere
   appName: "BatchKit",
-  appDescription: "Group buy coordinator",
+  appDescription: "An app for managing batch orders and buy rounds for group buys and preorders",
 
   // ──────────────────────────────────────────────────────────
   // Status badge variants — Tailwind class strings
