@@ -19,8 +19,8 @@ export async function createOrUpdateCommitment(
   buy_round_id: string,
   kit_quantity: number
 ): Promise<CommitmentResult> {
-  if (!Number.isInteger(kit_quantity) || kit_quantity < 1) {
-    return { success: false, error: "Kit quantity must be at least 1." };
+  if (!Number.isInteger(kit_quantity) || kit_quantity < 10) {
+    return { success: false, error: "Kit quantity must be at least 10." };
   }
 
   const supabase = await createClient();

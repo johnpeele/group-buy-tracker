@@ -24,7 +24,7 @@ export function TopNav({ displayName, isAdmin }: TopNavProps) {
   const router = useRouter();
 
   const navLinks = [
-    { href: "/", label: "Dashboard" },
+    { href: "/", label: "Open Buys" },
     { href: "/history", label: "History" },
     ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];

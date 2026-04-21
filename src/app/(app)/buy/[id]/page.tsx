@@ -77,7 +77,7 @@ export default async function BuyDetailPage({ params }: BuyDetailPageProps) {
         className="inline-flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors min-h-[44px]"
       >
         <ArrowLeft size={16} aria-hidden="true" />
-        Dashboard
+        Open Buys
       </Link>
 
       {/* Title + status */}

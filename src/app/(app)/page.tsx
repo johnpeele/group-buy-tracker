@@ -23,6 +23,7 @@ export default async function DashboardPage() {
       id,
       status,
       moq,
+      price_per_kit,
       variant_id,
       peptide_variants (
         weight_label,
@@ -113,7 +114,7 @@ export default async function DashboardPage() {
                         <div className="flex items-center gap-2">
                           <span className={tokens.type.muted}>My commitment</span>
                           <span className={cn(tokens.type.mono, "text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full")}>
-                            {myKits} kit{myKits !== 1 ? "s" : ""}
+                            {myKits} kit{myKits !== 1 ? "s" : ""} → ${(myKits * round.price_per_kit).toFixed(2)}
                           </span>
                         </div>
                       )}

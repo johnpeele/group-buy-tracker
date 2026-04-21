@@ -58,6 +58,45 @@ export async function createBuyRound(formData: FormData): Promise<ActionResult &
 }
 
 /**
+ * Update editable fields on a buy round. Admin only.
+ * Allowed for any non-terminal status (not shipped/cancelled).
+ */
+export async function updateBuyRound(
+  buy_round_id: string,
+  fields: { price_per_kit: number; moq: number; notes: string | null }
+): Promise<ActionResult> {
+  const { supabase, user, isAdmin } = await requireAdmin();
+  if (!user || !isAdmin) return { success: false, error: "Admin access required." };
+
+  if (fields.price_per_kit <= 0) return { success: false, error: "Price must be greater than 0." };
+  if (!Number.isInteger(fields.moq) || fields.moq < 1) return { success: false, error: "MOQ must be at least 1." };
+
+  const { data: round } = await supabase
+    .from("buy_rounds")
+    .select("status")
+    .eq("id", buy_round_id)
+    .single();
+
+  if (!round) return { success: false, error: "Buy round not found." };
+  if (round.status === "shipped" || round.status === "cancelled") {
+    return { success: false, error: "Cannot edit a completed buy round." };
+  }
+
+  const { error } = await supabase
+    .from("buy_rounds")
+    .update({ price_per_kit: fields.price_per_kit, moq: fields.moq, notes: fields.notes })
+    .eq("id", buy_round_id);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath(`/admin/buy/${buy_round_id}`);
+  revalidatePath("/admin");
+  revalidatePath("/admin/open-buys");
+  revalidatePath("/");
+  return { success: true };
+}
+
+/**
  * Lock a buy round. Validates MOQ is met before transitioning.
  */
 export async function lockBuyRound(buy_round_id: string): Promise<ActionResult> {

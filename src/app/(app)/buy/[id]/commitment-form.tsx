@@ -43,8 +43,8 @@ export function CommitmentForm({
     e.preventDefault();
     const kits = parseInt(quantity, 10);
 
-    if (!kits || kits < 1) {
-      toast.error("Enter a number of kits (minimum 1).");
+    if (!kits || kits < 10) {
+      toast.error("Minimum commitment is 10 kits.");
       return;
     }
 
@@ -76,7 +76,7 @@ export function CommitmentForm({
         <Input
           id="kit-quantity"
           type="number"
-          min="1"
+          min="10"
           step="1"
           inputMode="numeric"
           placeholder="0"
@@ -90,7 +90,7 @@ export function CommitmentForm({
           id="kit-quantity-hint"
           className={tokens.type.muted}
         >
-          Minimum 1 kit. No maximum.
+          Minimum 10 kits. No maximum.
         </p>
       </div>
 

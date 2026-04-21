@@ -61,7 +61,7 @@ export default async function AdminDashboardPage() {
       <h1 className={tokens.type.pageTitle}>Summary</h1>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-3">
+      <section className="grid grid-cols-2 gap-3">
         {[
           {
             href: "/admin/buy/new",
@@ -106,10 +106,10 @@ export default async function AdminDashboardPage() {
             </Card>
           </Link>
         ))}
-      </div>
+      </section>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-3 gap-3">
         {[
           { label: "Open Buys", value: rounds?.filter(r => r.status === "open").length ?? 0, href: null },
           { label: "Members", value: memberCount ?? 0, href: "/admin/members" },
@@ -129,17 +129,17 @@ export default async function AdminDashboardPage() {
             <Card key={label} className="shadow-sm">{content}</Card>
           );
         })}
-      </div>
+      </section>
 
-      {/* Active buy rounds */}
-      <section aria-labelledby="active-buys-heading">
-        <h2 id="active-buys-heading" className={cn(tokens.type.sectionLabel, "mb-3")}>
-          Active Buy Rounds
+      {/* Open buy rounds */}
+      <section aria-labelledby="open-buys-heading">
+        <h2 id="open-buys-heading" className={cn(tokens.type.sectionLabel, "mb-3")}>
+          Open Buys
         </h2>
         {!rounds || rounds.length === 0 ? (
           <Card className="shadow-sm">
             <CardContent className="py-8 text-center">
-              <p className={tokens.type.muted}>No active buy rounds.</p>
+              <p className={tokens.type.muted}>No open buy rounds.</p>
             </CardContent>
           </Card>
         ) : (

@@ -1,14 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge } from "@/components/status-badge";
 import { MoqProgressBar } from "@/components/moq-progress-bar";
 import { tokens } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import { AdminBuyActions } from "./admin-buy-actions";
 import { CommitmentsTable } from "./commitments-table";
+import { AdminBuyControls } from "./admin-buy-controls";
 
 export const revalidate = 10;
 
@@ -19,6 +18,11 @@ interface AdminBuyPageProps {
 export default async function AdminBuyPage({ params }: AdminBuyPageProps) {
   const { id } = await params;
   const supabase = await createClient();
+
+  const headersList = await headers();
+  const referer = headersList.get("referer") ?? "";
+  const backHref = referer.includes("/admin/open-buys") ? "/admin/open-buys" : "/admin";
+  const backLabel = referer.includes("/admin/open-buys") ? "Open Buys" : "Summary";
 
   const {
     data: { user },
@@ -32,7 +36,6 @@ export default async function AdminBuyPage({ params }: AdminBuyPageProps) {
 
   if (profile?.role !== "admin") redirect("/");
 
-  // Fetch the buy round with variant + peptide info
   const { data: round } = await supabase
     .from("buy_rounds")
     .select(`
@@ -47,7 +50,6 @@ export default async function AdminBuyPage({ params }: AdminBuyPageProps) {
 
   if (!round) notFound();
 
-  // MOQ progress
   const { data: progressData } = await supabase
     .rpc("get_moq_progress", { p_buy_round_id: id })
     .single();
@@ -55,7 +57,6 @@ export default async function AdminBuyPage({ params }: AdminBuyPageProps) {
   const committedKits = progressData?.committed_kits ?? 0;
   const totalValue = committedKits * round.price_per_kit;
 
-  // Fetch all commitments with member info and payment status
   const { data: commitments } = await supabase
     .from("commitments")
     .select(`
@@ -74,28 +75,18 @@ export default async function AdminBuyPage({ params }: AdminBuyPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Back + header */}
-      <div>
-        <Link
-          href="/admin"
-          className={cn(
-            tokens.type.muted,
-            "inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-2"
-          )}
-        >
-          <ChevronLeft size={14} aria-hidden="true" />
-          Admin
-        </Link>
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className={tokens.type.pageTitle}>{title}</h1>
-            <div className="mt-1">
-              <StatusBadge status={round.status} />
-            </div>
-          </div>
-          <AdminBuyActions buyRoundId={id} status={round.status} committedKits={committedKits} moq={round.moq} />
-        </div>
-      </div>
+      {/* Back link, title, action buttons, and inline edit form */}
+      <AdminBuyControls
+        buyRoundId={id}
+        status={round.status}
+        committedKits={committedKits}
+        moq={round.moq}
+        pricePerKit={round.price_per_kit}
+        notes={round.notes ?? null}
+        title={title}
+        backHref={backHref}
+        backLabel={backLabel}
+      />
 
       {/* Progress + stats */}
       <Card className="shadow-sm">
