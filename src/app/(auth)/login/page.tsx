@@ -79,7 +79,7 @@ function LoginForm() {
         },
       });
       if (error) {
-        toast.error("Could not send magic link. Check your email address.");
+        toast.error(error.message ?? "Could not send magic link. Check your email address.");
         return;
       }
       setMagicSent(true);
