@@ -169,7 +169,7 @@ function LoginForm() {
                     inputMode="numeric"
                     placeholder="Enter code"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     autoFocus
                     className="text-center tracking-[0.4em] font-mono text-lg min-h-[44px]"
                     required
@@ -177,7 +177,7 @@ function LoginForm() {
                 </div>
                 <Button
                   type="submit"
-                  disabled={isPending || code.length < 6}
+                  disabled={isPending || code.length < 1}
                   className="w-full min-h-[44px]"
                 >
                   {isPending ? "Verifying..." : "Continue with login code"}
