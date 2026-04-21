@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +10,6 @@ import { toast } from "sonner";
 import { tokens } from "@/lib/design-tokens";
 
 const LAST_PROVIDER_KEY = "batchkit_last_provider";
-
-const fadeSlide = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
-  exit: { opacity: 0, y: -6, transition: { duration: 0.15, ease: "easeIn" } },
-};
 
 function GoogleIcon() {
   return (
@@ -33,11 +26,8 @@ function LoginForm() {
   const [mode, setMode] = useState<"default" | "email">("default");
   const [email, setEmail] = useState("");
   const [magicSent, setMagicSent] = useState(false);
-  const [showCodeInput, setShowCodeInput] = useState(false);
-  const [code, setCode] = useState("");
   const [isPending, startTransition] = useTransition();
   const [usedGoogleBefore, setUsedGoogleBefore] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const errorParam = searchParams.get("error");
@@ -50,6 +40,7 @@ function LoginForm() {
 
   useEffect(() => {
     setUsedGoogleBefore(localStorage.getItem(LAST_PROVIDER_KEY) === "google");
+    // Clear the hint if their Google account wasn't invited
     if (errorParam === "not_invited") {
       localStorage.removeItem(LAST_PROVIDER_KEY);
       setUsedGoogleBefore(false);
@@ -79,163 +70,69 @@ function LoginForm() {
         },
       });
       if (error) {
-        toast.error(error.message ?? "Could not send magic link. Check your email address.");
+        toast.error("Could not send magic link. Check your email address.");
         return;
       }
       setMagicSent(true);
     });
   }
 
-  function handleVerifyCode(e: React.FormEvent) {
-    e.preventDefault();
-    startTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: code.trim(),
-        type: "email",
-      });
-      if (error) {
-        toast.error("Invalid or expired code. Please try again.");
-        return;
-      }
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("id", user.id)
-          .single();
-        if (!profile) {
-          await supabase.auth.signOut();
-          router.push("/login?error=not_invited");
-          return;
-        }
-      }
-      router.push("/");
-      router.refresh();
-    });
-  }
-
-  function resetToDefault() {
-    setMode("default");
-    setMagicSent(false);
-    setShowCodeInput(false);
-    setCode("");
-  }
-
-  // ── Confirm screen (after magic link sent) ──────────────────
-  if (magicSent) {
-    return (
-      <div className="space-y-5 text-center">
-        <div className="space-y-2">
-          <p className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            Check your email
-          </p>
-          <p className={tokens.type.muted}>
-            We&apos;ve sent you a temporary login link. Please check your inbox at{" "}
-            <strong className="text-zinc-700 dark:text-zinc-300">{email}</strong>.
-          </p>
-        </div>
-
-        <AnimatePresence mode="wait">
-          {!showCodeInput ? (
-            <motion.div key="prompt" {...fadeSlide} className="space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full min-h-[44px]"
-                onClick={() => setShowCodeInput(true)}
-              >
-                Enter code manually
-              </Button>
-              <button
-                type="button"
-                className={`text-sm ${tokens.type.muted} hover:text-foreground transition-colors`}
-                onClick={resetToDefault}
-              >
-                Back to login
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div key="code-form" {...fadeSlide}>
-              <form onSubmit={handleVerifyCode} className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="code" className="sr-only">Login code</Label>
-                  <Input
-                    id="code"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Enter code"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    autoFocus
-                    className="text-center tracking-[0.4em] font-mono text-lg min-h-[44px]"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={isPending || code.length < 6}
-                  className="w-full min-h-[44px]"
-                >
-                  {isPending ? "Verifying..." : "Continue with login code"}
-                </Button>
-                <button
-                  type="button"
-                  className={`text-sm ${tokens.type.muted} hover:text-foreground transition-colors`}
-                  onClick={resetToDefault}
-                >
-                  Back to login
-                </button>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  }
-
-  // ── Email step ──────────────────────────────────────────────
   if (mode === "email") {
     return (
       <div className="space-y-5">
-        <p className="text-xl font-semibold text-center text-zinc-900 dark:text-zinc-100">
-          What&apos;s your email address?
-        </p>
-        <form onSubmit={handleMagicLinkSubmit} className="space-y-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="email" className="sr-only">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="Enter your email address..."
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoFocus
-              className="min-h-[44px]"
-            />
+        {magicSent ? (
+          <div className="space-y-3 text-center">
+            <p className="text-sm font-medium">Check your email</p>
+            <p className={tokens.type.muted}>
+              We sent a sign-in link to <strong>{email}</strong>.
+            </p>
+            <button
+              type="button"
+              className={`${tokens.type.muted} hover:text-foreground underline underline-offset-4 transition-colors text-sm`}
+              onClick={() => { setMagicSent(false); setEmail(""); }}
+            >
+              Use a different email
+            </button>
           </div>
-          <Button type="submit" disabled={isPending} className="w-full min-h-[44px]">
-            {isPending ? "Sending..." : "Continue with email"}
-          </Button>
-        </form>
-        <p className="text-center">
-          <button
-            type="button"
-            className={`text-sm ${tokens.type.muted} hover:text-foreground transition-colors`}
-            onClick={() => setMode("default")}
-          >
-            Back to login
-          </button>
-        </p>
+        ) : (
+          <>
+            <p className="text-xl font-semibold text-center text-zinc-900 dark:text-zinc-100">
+              What&apos;s your email address?
+            </p>
+            <form onSubmit={handleMagicLinkSubmit} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="sr-only">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Enter your email address..."
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                  className="min-h-[44px]"
+                />
+              </div>
+              <Button type="submit" disabled={isPending} className="w-full min-h-[44px]">
+                {isPending ? "Sending..." : "Continue with email"}
+              </Button>
+            </form>
+            <p className="text-center">
+              <button
+                type="button"
+                className={`text-sm ${tokens.type.muted} hover:text-foreground transition-colors`}
+                onClick={() => setMode("default")}
+              >
+                Back to login
+              </button>
+            </p>
+          </>
+        )}
       </div>
     );
   }
 
-  // ── Default step ────────────────────────────────────────────
   return (
     <div className="space-y-3">
       {errorMessage && (

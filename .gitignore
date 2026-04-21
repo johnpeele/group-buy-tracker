@@ -36,6 +36,7 @@ yarn-error.log*
 
 # npm lock (project uses pnpm)
 package-lock.json
+pnpm-lock.yaml
 
 # vercel
 .vercel
