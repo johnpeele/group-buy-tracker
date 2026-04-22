@@ -118,15 +118,11 @@ function MemberActions({ member, currentUserId }: { member: Member; currentUserI
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            aria-label={`Actions for ${member.display_name}`}
-          >
-            <MoreHorizontal size={16} />
-          </Button>
+        <DropdownMenuTrigger
+          className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+          aria-label={`Actions for ${member.display_name}`}
+        >
+          <MoreHorizontal size={16} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuItem onClick={() => setEditOpen(true)}>
