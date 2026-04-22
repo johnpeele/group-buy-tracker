@@ -50,22 +50,21 @@ export default async function AdminBuyPage({ params }: AdminBuyPageProps) {
 
   if (!round) notFound();
 
-  const { data: progressData } = await supabase
-    .rpc("get_moq_progress", { p_buy_round_id: id })
-    .single();
+  const [{ data: progressData }, { data: commitments }] = await Promise.all([
+    supabase.rpc("get_moq_progress", { p_buy_round_id: id }).single(),
+    supabase
+      .from("commitments")
+      .select(`
+        id, kit_quantity, committed_at,
+        profiles ( display_name, email ),
+        payments ( id, amount_paid, marked_paid_at, notes )
+      `)
+      .eq("buy_round_id", id)
+      .order("committed_at", { ascending: true }),
+  ]);
 
   const committedKits = progressData?.committed_kits ?? 0;
   const totalValue = committedKits * round.price_per_kit;
-
-  const { data: commitments } = await supabase
-    .from("commitments")
-    .select(`
-      id, kit_quantity, committed_at,
-      profiles ( display_name, email ),
-      payments ( id, amount_paid, marked_paid_at, notes )
-    `)
-    .eq("buy_round_id", id)
-    .order("committed_at", { ascending: true });
 
   const variant = round.peptide_variants;
   const peptide = Array.isArray(variant?.peptides)

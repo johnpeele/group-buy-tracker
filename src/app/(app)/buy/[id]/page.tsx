@@ -43,18 +43,15 @@ export default async function BuyDetailPage({ params }: BuyDetailPageProps) {
   const peptideName = peptide?.name ?? "Unknown";
   const weightLabel = variant?.weight_label ?? "";
 
-  // MOQ progress
-  const { data: progress } = await supabase
-    .rpc("get_moq_progress", { p_buy_round_id: id })
-    .single();
-
-  // My commitment
-  const { data: myCommitment } = await supabase
-    .from("commitments")
-    .select("id, kit_quantity")
-    .eq("buy_round_id", id)
-    .eq("member_id", user!.id)
-    .single();
+  const [{ data: progress }, { data: myCommitment }] = await Promise.all([
+    supabase.rpc("get_moq_progress", { p_buy_round_id: id }).single(),
+    supabase
+      .from("commitments")
+      .select("id, kit_quantity")
+      .eq("buy_round_id", id)
+      .eq("member_id", user!.id)
+      .maybeSingle(),
+  ]);
 
   // Payment status (only relevant post-lock)
   const showPayment = round.status !== "open";
