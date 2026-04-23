@@ -44,7 +44,7 @@ export default async function AdminOpenBuysPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className={tokens.type.pageTitle}>Open Buys</h1>
-        <Link href="/admin/buy/new" className={cn(buttonVariants({ size: "sm" }))}>
+        <Link href="/admin/buy/new" className={cn(buttonVariants({ size: "lg" }))}>
           <Plus size={15} className="mr-1.5" aria-hidden="true" />
           New Buy Round
         </Link>

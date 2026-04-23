@@ -91,9 +91,9 @@ export default async function AdminDashboardPage() {
           <Link
             key={label}
             href={href}
-            className="group block"
+            className="group flex flex-col"
           >
-            <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
+            <Card className="shadow-sm hover:shadow-md transition-shadow flex-1">
               <CardContent className="pt-4 pb-4 flex flex-col gap-1.5">
                 <Icon
                   size={18}
@@ -122,8 +122,8 @@ export default async function AdminDashboardPage() {
             </CardContent>
           );
           return href ? (
-            <Link key={label} href={href} className="block group">
-              <Card className="shadow-sm hover:shadow-md transition-shadow">{content}</Card>
+            <Link key={label} href={href} className="group flex flex-col">
+              <Card className="shadow-sm hover:shadow-md transition-shadow flex-1">{content}</Card>
             </Link>
           ) : (
             <Card key={label} className="shadow-sm">{content}</Card>

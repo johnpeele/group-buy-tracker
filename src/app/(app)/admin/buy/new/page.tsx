@@ -33,14 +33,14 @@ export default async function NewBuyPage() {
     <div className="space-y-6 max-w-lg">
       <div>
         <Link
-          href="/admin"
+          href="/admin/open-buys"
           className={cn(
             tokens.type.muted,
             "inline-flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-2"
           )}
         >
           <ChevronLeft size={14} aria-hidden="true" />
-          Admin
+          Open Buys
         </Link>
         <h1 className={tokens.type.pageTitle}>New Buy Round</h1>
       </div>
