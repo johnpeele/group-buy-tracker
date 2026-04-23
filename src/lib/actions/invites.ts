@@ -53,7 +53,9 @@ export async function sendInvite(formData: FormData): Promise<ActionResult> {
 
   // Send invite email via Supabase Auth (magic link to the invite acceptance page)
   const adminClient = await createAdminClient();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
   const inviteUrl = `${appUrl}/invite?token=${invite.token}`;
 
   const { error: emailError } = await adminClient.auth.admin.inviteUserByEmail(email, {
@@ -145,7 +147,9 @@ export async function acceptInvite(
 
   // Generate a magic link so the user is signed in immediately after the invite form
   const adminClient = await createAdminClient();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
   const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
     type: "magiclink",
