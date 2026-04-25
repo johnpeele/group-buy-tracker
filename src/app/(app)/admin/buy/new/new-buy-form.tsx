@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormMessage } from "@/components/ui/form-message";
 import { Card, CardContent } from "@/components/ui/card";
 import { createBuyRound } from "@/lib/actions/buy-rounds";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
   const [pricePerKit, setPricePerKit] = useState("");
   const [moq, setMoq] = useState("100");
   const [notes, setNotes] = useState("");
+  const [errors, setErrors] = useState<{ variant?: string; price?: string; moq?: string }>({});
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -51,15 +53,20 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
     setSelectedVariantId("");
   }
 
-  const isValid =
-    selectedVariantId &&
-    pricePerKit &&
-    parseFloat(pricePerKit) > 0 &&
-    parseInt(moq) >= 1;
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isValid) return;
+
+    const newErrors: typeof errors = {};
+    if (!selectedVariantId) newErrors.variant = "Select a peptide and variant.";
+    const parsedPrice = parseFloat(pricePerKit);
+    if (!pricePerKit || isNaN(parsedPrice) || parsedPrice <= 0) newErrors.price = "Price must be greater than 0.";
+    const parsedMoq = parseInt(moq, 10);
+    if (!moq || isNaN(parsedMoq) || parsedMoq < 1) newErrors.moq = "MOQ must be at least 1.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     const formData = new FormData();
     formData.set("variant_id", selectedVariantId);
@@ -109,7 +116,10 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
             <select
               id="peptide"
               value={selectedPeptideId}
-              onChange={(e) => handlePeptideChange(e.target.value)}
+              onChange={(e) => {
+                handlePeptideChange(e.target.value);
+                if (errors.variant) setErrors((prev) => ({ ...prev, variant: undefined }));
+              }}
               required
               className={cn(
                 "w-full min-h-[44px] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900",
@@ -132,14 +142,18 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
             <select
               id="variant"
               value={selectedVariantId}
-              onChange={(e) => setSelectedVariantId(e.target.value)}
+              onChange={(e) => {
+                setSelectedVariantId(e.target.value);
+                if (errors.variant) setErrors((prev) => ({ ...prev, variant: undefined }));
+              }}
               required
               disabled={!selectedPeptideId || variants.length === 0}
               className={cn(
                 "w-full min-h-[44px] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900",
                 "px-3 text-sm text-zinc-900 dark:text-zinc-100",
                 "focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100",
-                "disabled:opacity-50"
+                "disabled:opacity-50",
+                errors.variant && "border-destructive ring-3 ring-destructive/20"
               )}
             >
               <option value="">
@@ -156,6 +170,7 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
                 </option>
               ))}
             </select>
+            <FormMessage message={errors.variant} />
           </div>
 
           {/* Price per kit (admin-only) */}
@@ -168,10 +183,20 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
               step="0.01"
               placeholder="0.00"
               value={pricePerKit}
-              onChange={(e) => setPricePerKit(e.target.value)}
+              onChange={(e) => {
+                setPricePerKit(e.target.value);
+                if (errors.price) setErrors((prev) => ({ ...prev, price: undefined }));
+              }}
+              onBlur={(e) => {
+                const val = parseFloat(e.target.value);
+                if (e.target.value && (isNaN(val) || val <= 0))
+                  setErrors((prev) => ({ ...prev, price: "Price must be greater than 0." }));
+              }}
+              aria-invalid={!!errors.price}
               required
               className="min-h-[44px]"
             />
+            <FormMessage message={errors.price} />
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Supplier price — visible only to admins and in member payment summaries.
             </p>
@@ -187,10 +212,20 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
               step="1"
               placeholder="100"
               value={moq}
-              onChange={(e) => setMoq(e.target.value)}
+              onChange={(e) => {
+                setMoq(e.target.value);
+                if (errors.moq) setErrors((prev) => ({ ...prev, moq: undefined }));
+              }}
+              onBlur={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (e.target.value && (isNaN(val) || val < 1))
+                  setErrors((prev) => ({ ...prev, moq: "MOQ must be at least 1." }));
+              }}
+              aria-invalid={!!errors.moq}
               required
               className="min-h-[44px]"
             />
+            <FormMessage message={errors.moq} />
           </div>
 
           {/* Notes */}
@@ -214,7 +249,7 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
 
           <Button
             type="submit"
-            disabled={isPending || !isValid}
+            disabled={isPending}
             className="w-full min-h-[44px]"
           >
             {isPending ? "Opening buy..." : "Open buy round"}
