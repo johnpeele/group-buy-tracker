@@ -161,6 +161,7 @@ function MemberActions({ member, currentUserId }: { member: Member; currentUserI
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                maxLength={80}
                 className="min-h-[44px]"
               />
             </div>
@@ -172,6 +173,7 @@ function MemberActions({ member, currentUserId }: { member: Member; currentUserI
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                maxLength={254}
                 className="min-h-[44px]"
               />
             </div>

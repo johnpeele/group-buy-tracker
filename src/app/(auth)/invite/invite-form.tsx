@@ -97,6 +97,7 @@ export function InviteForm({ token }: InviteFormProps) {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required
+              maxLength={80}
               className="min-h-[44px]"
             />
           </div>

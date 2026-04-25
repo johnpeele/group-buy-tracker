@@ -22,6 +22,9 @@ export async function createOrUpdateCommitment(
   if (!Number.isInteger(kit_quantity) || kit_quantity < 10) {
     return { success: false, error: "Kit quantity must be at least 10." };
   }
+  if (kit_quantity > 10_000) {
+    return { success: false, error: "Kit quantity cannot exceed 10,000." };
+  }
 
   const supabase = await createClient();
 

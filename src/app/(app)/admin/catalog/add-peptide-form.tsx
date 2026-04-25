@@ -59,6 +59,7 @@ export function AddPeptideForm() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                maxLength={120}
                 className="min-h-[44px]"
                 aria-label="Peptide name"
               />
@@ -79,6 +80,7 @@ export function AddPeptideForm() {
               placeholder="Description (optional)"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              maxLength={500}
               className="min-h-[44px]"
               aria-label="Peptide description"
             />

@@ -203,6 +203,11 @@ describe("acceptInvite", () => {
     expect(result).toEqual({ success: false, error: "Please provide your name." });
   });
 
+  it("returns error when display_name exceeds 80 characters", async () => {
+    const result = await acceptInvite("valid-token", "a".repeat(81));
+    expect(result).toEqual({ success: false, error: "Name must be 80 characters or fewer." });
+  });
+
   it("returns error for an invalid or expired token", async () => {
     mockCreateClient.mockResolvedValue(
       createMockClient({

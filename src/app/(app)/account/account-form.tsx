@@ -77,6 +77,7 @@ export function AccountForm({ userId, email, displayName, role }: AccountFormPro
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                maxLength={80}
                 className="min-h-[44px]"
               />
             </div>

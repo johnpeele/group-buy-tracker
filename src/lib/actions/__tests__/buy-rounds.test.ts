@@ -96,6 +96,29 @@ describe("createBuyRound", () => {
     expect(result).toEqual({ success: false, error: "Invalid buy round data." });
   });
 
+  it("returns error when notes exceed 1000 characters", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({ user: adminUser, fromResults: [adminProfile] }) as never
+    );
+    const result = await createBuyRound(
+      makeFormData({ variant_id: "v1", price_per_kit: "25", moq: "100", notes: "x".repeat(1001) })
+    );
+    expect(result).toEqual({ success: false, error: "Notes must be 1000 characters or fewer." });
+  });
+
+  it("treats whitespace-only notes as null", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({
+        user: adminUser,
+        fromResults: [adminProfile, { data: { id: "round-1" }, error: null }],
+      }) as never
+    );
+    const result = await createBuyRound(
+      makeFormData({ variant_id: "v1", price_per_kit: "25", moq: "100", notes: "   " })
+    );
+    expect(result).toEqual({ success: true, id: "round-1" });
+  });
+
   it("returns success with new round id", async () => {
     mockCreateClient.mockResolvedValue(
       createMockClient({
@@ -231,6 +254,17 @@ describe("updateBuyRound", () => {
       success: false,
       error: "Cannot edit a completed buy round.",
     });
+  });
+
+  it("returns error when notes exceed 1000 characters", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({
+        user: adminUser,
+        fromResults: [adminProfile, { data: { status: "open" }, error: null }],
+      }) as never
+    );
+    const result = await updateBuyRound("round-1", { ...validFields, notes: "x".repeat(1001) });
+    expect(result).toEqual({ success: false, error: "Notes must be 1000 characters or fewer." });
   });
 
   it("returns success for an open buy round", async () => {
