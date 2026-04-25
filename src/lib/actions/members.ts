@@ -27,7 +27,10 @@ export async function updateMember(
   const { supabase, user, isAdmin } = await requireAdmin();
   if (!user || !isAdmin) return { success: false, error: "Admin access required." };
   if (!fields.display_name.trim()) return { success: false, error: "Name is required." };
+  if (fields.display_name.trim().length > 80) return { success: false, error: "Name must be 80 characters or fewer." };
   if (!fields.email.trim()) return { success: false, error: "Email is required." };
+  if (!fields.email.includes("@")) return { success: false, error: "Invalid email address." };
+  if (fields.email.trim().length > 254) return { success: false, error: "Email must be 254 characters or fewer." };
 
   const { error } = await supabase
     .from("profiles")

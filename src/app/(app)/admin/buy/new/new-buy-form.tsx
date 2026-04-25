@@ -202,6 +202,7 @@ export function NewBuyForm({ peptides }: NewBuyFormProps) {
               placeholder="Any notes for this buy round..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              maxLength={1000}
               className={cn(
                 "w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900",
                 "px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100",

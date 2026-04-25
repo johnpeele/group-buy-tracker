@@ -32,10 +32,13 @@ export async function createBuyRound(formData: FormData): Promise<ActionResult &
   const variant_id = formData.get("variant_id") as string;
   const price_per_kit = parseFloat(formData.get("price_per_kit") as string);
   const moq = parseInt(formData.get("moq") as string, 10) || 100;
-  const notes = (formData.get("notes") as string) || null;
+  const notes = ((formData.get("notes") as string) || "").trim() || null;
 
   if (!variant_id || isNaN(price_per_kit) || price_per_kit <= 0) {
     return { success: false, error: "Invalid buy round data." };
+  }
+  if (notes && notes.length > 1000) {
+    return { success: false, error: "Notes must be 1000 characters or fewer." };
   }
 
   const { data, error } = await supabase
@@ -70,6 +73,7 @@ export async function updateBuyRound(
 
   if (fields.price_per_kit <= 0) return { success: false, error: "Price must be greater than 0." };
   if (!Number.isInteger(fields.moq) || fields.moq < 1) return { success: false, error: "MOQ must be at least 1." };
+  if (fields.notes && fields.notes.trim().length > 1000) return { success: false, error: "Notes must be 1000 characters or fewer." };
 
   const { data: round } = await supabase
     .from("buy_rounds")

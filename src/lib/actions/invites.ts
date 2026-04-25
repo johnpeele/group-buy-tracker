@@ -120,6 +120,9 @@ export async function acceptInvite(
   if (!token || !display_name.trim()) {
     return { success: false, error: "Please provide your name." };
   }
+  if (display_name.trim().length > 80) {
+    return { success: false, error: "Name must be 80 characters or fewer." };
+  }
 
   const supabase = await createClient();
 

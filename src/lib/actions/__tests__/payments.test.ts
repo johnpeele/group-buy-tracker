@@ -55,6 +55,22 @@ describe("markPaymentReceived", () => {
     expect(result).toEqual({ success: false, error: "Invalid payment amount." });
   });
 
+  it("returns error when amount_paid exceeds $100,000", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({ user: adminUser, fromResults: [adminProfile] }) as never
+    );
+    const result = await markPaymentReceived("commitment-1", 100_001);
+    expect(result).toEqual({ success: false, error: "Payment amount cannot exceed $100,000." });
+  });
+
+  it("returns error when notes exceed 1000 characters", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({ user: adminUser, fromResults: [adminProfile] }) as never
+    );
+    const result = await markPaymentReceived("commitment-1", 50, "x".repeat(1001));
+    expect(result).toEqual({ success: false, error: "Notes must be 1000 characters or fewer." });
+  });
+
   it("returns error when commitment is not found", async () => {
     mockCreateClient.mockResolvedValue(
       createMockClient({

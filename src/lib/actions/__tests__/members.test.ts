@@ -49,12 +49,37 @@ describe("updateMember", () => {
     expect(result).toEqual({ success: false, error: "Name is required." });
   });
 
+  it("returns error when display_name exceeds 80 characters", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({ user: adminUser, fromResults: [adminProfile] }) as never
+    );
+    const result = await updateMember("member-1", { ...validFields, display_name: "a".repeat(81) });
+    expect(result).toEqual({ success: false, error: "Name must be 80 characters or fewer." });
+  });
+
   it("returns error when email is empty", async () => {
     mockCreateClient.mockResolvedValue(
       createMockClient({ user: adminUser, fromResults: [adminProfile] }) as never
     );
     const result = await updateMember("member-1", { ...validFields, email: "" });
     expect(result).toEqual({ success: false, error: "Email is required." });
+  });
+
+  it("returns error when email has no @ sign", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({ user: adminUser, fromResults: [adminProfile] }) as never
+    );
+    const result = await updateMember("member-1", { ...validFields, email: "notanemail" });
+    expect(result).toEqual({ success: false, error: "Invalid email address." });
+  });
+
+  it("returns error when email exceeds 254 characters", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({ user: adminUser, fromResults: [adminProfile] }) as never
+    );
+    const longEmail = "a".repeat(243) + "@example.com"; // 255 chars
+    const result = await updateMember("member-1", { ...validFields, email: longEmail });
+    expect(result).toEqual({ success: false, error: "Email must be 254 characters or fewer." });
   });
 
   it("returns success on valid update", async () => {

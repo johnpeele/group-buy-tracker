@@ -29,6 +29,12 @@ export async function markPaymentReceived(
   if (!amount_paid || amount_paid <= 0) {
     return { success: false, error: "Invalid payment amount." };
   }
+  if (amount_paid > 100_000) {
+    return { success: false, error: "Payment amount cannot exceed $100,000." };
+  }
+  if (notes && notes.trim().length > 1000) {
+    return { success: false, error: "Notes must be 1000 characters or fewer." };
+  }
 
   // Verify commitment exists
   const { data: commitment } = await supabase
@@ -43,7 +49,7 @@ export async function markPaymentReceived(
     commitment_id,
     amount_paid,
     marked_by: user.id,
-    notes: notes || null,
+    notes: notes?.trim() || null,
   });
 
   if (error) return { success: false, error: error.message };

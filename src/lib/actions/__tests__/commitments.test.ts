@@ -47,6 +47,28 @@ describe("createOrUpdateCommitment", () => {
     });
   });
 
+  it("returns error when kit_quantity exceeds 10,000", async () => {
+    const result = await createOrUpdateCommitment("round-1", 10_001);
+    expect(result).toEqual({
+      success: false,
+      error: "Kit quantity cannot exceed 10,000.",
+    });
+  });
+
+  it("accepts exactly 10,000 kits (upper boundary)", async () => {
+    mockCreateClient.mockResolvedValue(
+      createMockClient({
+        user: memberUser,
+        fromResults: [
+          { data: { id: "round-1", status: "open", moq: 100 }, error: null },
+          { data: null, error: null },
+        ],
+      }) as never
+    );
+    const result = await createOrUpdateCommitment("round-1", 10_000);
+    expect(result).toEqual({ success: true, kit_quantity: 10_000 });
+  });
+
   it("returns error when user is not authenticated", async () => {
     mockCreateClient.mockResolvedValue(
       createMockClient({ user: null }) as never
