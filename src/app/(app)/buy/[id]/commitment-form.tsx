@@ -5,6 +5,7 @@ import { createOrUpdateCommitment } from "@/lib/actions/commitments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormMessage } from "@/components/ui/form-message";
 import { StatusBadge } from "@/components/status-badge";
 import { tokens } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ export function CommitmentForm({
   const [quantity, setQuantity] = useState(
     currentKitQuantity?.toString() ?? ""
   );
+  const [quantityError, setQuantityError] = useState("");
   const [isPending, startTransition] = useTransition();
 
   if (!isEditable) {
@@ -39,15 +41,21 @@ export function CommitmentForm({
     );
   }
 
+  function validateQuantity(value: string): string {
+    const kits = parseInt(value, 10);
+    if (!kits || kits < 10) return "Minimum commitment is 10 kits.";
+    return "";
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const kits = parseInt(quantity, 10);
-
-    if (!kits || kits < 10) {
-      toast.error("Minimum commitment is 10 kits.");
+    const error = validateQuantity(quantity);
+    if (error) {
+      setQuantityError(error);
       return;
     }
 
+    const kits = parseInt(quantity, 10);
     startTransition(async () => {
       const result = await createOrUpdateCommitment(buyRoundId, kits);
       if (result.success) {
@@ -81,11 +89,19 @@ export function CommitmentForm({
           inputMode="numeric"
           placeholder="0"
           value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
+          onChange={(e) => {
+            setQuantity(e.target.value);
+            if (quantityError) setQuantityError("");
+          }}
+          onBlur={(e) => {
+            if (e.target.value) setQuantityError(validateQuantity(e.target.value));
+          }}
           className={cn(tokens.type.mono)}
-          aria-describedby="kit-quantity-hint"
+          aria-invalid={!!quantityError}
+          aria-describedby={quantityError ? "kit-quantity-error kit-quantity-hint" : "kit-quantity-hint"}
           required
         />
+        <FormMessage message={quantityError} id="kit-quantity-error" />
         <p
           id="kit-quantity-hint"
           className={tokens.type.muted}
@@ -96,7 +112,7 @@ export function CommitmentForm({
 
       <Button
         type="submit"
-        disabled={isPending || !quantity}
+        disabled={isPending}
         className="w-full min-h-[44px]"
       >
         {isPending

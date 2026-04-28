@@ -5,6 +5,7 @@ import { updateBuyRound } from "@/lib/actions/buy-rounds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormMessage } from "@/components/ui/form-message";
 import { Card, CardContent } from "@/components/ui/card";
 import { tokens } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
@@ -23,21 +24,33 @@ export function EditBuyForm({ buyRoundId, pricePerKit, moq, notes, onClose }: Ed
   const [price, setPrice] = useState(pricePerKit.toFixed(2));
   const [moqValue, setMoqValue] = useState(moq.toString());
   const [notesValue, setNotesValue] = useState(notes ?? "");
+  const [errors, setErrors] = useState<{ price?: string; moq?: string }>({});
   const [isPending, startTransition] = useTransition();
+
+  function validatePrice(value: string): string {
+    const parsed = parseFloat(value);
+    if (!value || isNaN(parsed) || parsed <= 0) return "Price must be greater than 0.";
+    return "";
+  }
+
+  function validateMoq(value: string): string {
+    const parsed = parseInt(value, 10);
+    if (!value || isNaN(parsed) || parsed < 1) return "MOQ must be at least 1.";
+    return "";
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const priceError = validatePrice(price);
+    const moqError = validateMoq(moqValue);
+
+    if (priceError || moqError) {
+      setErrors({ price: priceError || undefined, moq: moqError || undefined });
+      return;
+    }
+
     const parsedPrice = parseFloat(price);
     const parsedMoq = parseInt(moqValue, 10);
-
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      toast.error("Price must be greater than 0.");
-      return;
-    }
-    if (isNaN(parsedMoq) || parsedMoq < 1) {
-      toast.error("MOQ must be at least 1.");
-      return;
-    }
 
     startTransition(async () => {
       const result = await updateBuyRound(buyRoundId, {
@@ -80,10 +93,19 @@ export function EditBuyForm({ buyRoundId, pricePerKit, moq, notes, onClose }: Ed
                 min="0.01"
                 step="0.01"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => {
+                  setPrice(e.target.value);
+                  if (errors.price) setErrors((prev) => ({ ...prev, price: undefined }));
+                }}
+                onBlur={(e) => {
+                  const err = validatePrice(e.target.value);
+                  if (err) setErrors((prev) => ({ ...prev, price: err }));
+                }}
+                aria-invalid={!!errors.price}
                 required
                 className="min-h-[44px]"
               />
+              <FormMessage message={errors.price} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="edit-moq">Minimum order quantity (kits)</Label>
@@ -93,10 +115,19 @@ export function EditBuyForm({ buyRoundId, pricePerKit, moq, notes, onClose }: Ed
                 min="1"
                 step="1"
                 value={moqValue}
-                onChange={(e) => setMoqValue(e.target.value)}
+                onChange={(e) => {
+                  setMoqValue(e.target.value);
+                  if (errors.moq) setErrors((prev) => ({ ...prev, moq: undefined }));
+                }}
+                onBlur={(e) => {
+                  const err = validateMoq(e.target.value);
+                  if (err) setErrors((prev) => ({ ...prev, moq: err }));
+                }}
+                aria-invalid={!!errors.moq}
                 required
                 className="min-h-[44px]"
               />
+              <FormMessage message={errors.moq} />
             </div>
           </div>
 
