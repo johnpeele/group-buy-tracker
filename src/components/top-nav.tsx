@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ModeToggle } from "@/components/mode-toggle";
 import { cn } from "@/lib/utils";
 
 interface TopNavProps {
@@ -74,34 +75,39 @@ export function TopNav({ displayName, isAdmin }: TopNavProps) {
         })}
       </nav>
 
-      {/* Account dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          className="flex items-center gap-2 rounded-full min-h-11 cursor-pointer"
-          aria-label="Account menu"
-        >
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="text-xs bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <div className="px-2 py-1.5">
-            <p className="text-sm font-medium">{displayName}</p>
-          </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/account")}>
-            Account settings
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleSignOut}
-            variant="destructive"
+      {/* Right side controls */}
+      <div className="flex items-center gap-1">
+        <ModeToggle />
+
+        {/* Account dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="flex items-center gap-2 rounded-full min-h-11 cursor-pointer"
+            aria-label="Account menu"
           >
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="text-xs bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <div className="px-2 py-1.5">
+              <p className="text-sm font-medium">{displayName}</p>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/account")}>
+              Account settings
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              variant="destructive"
+            >
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }

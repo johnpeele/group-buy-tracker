@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { tokens } from "@/lib/design-tokens";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Agentation } from "agentation";
 import "./globals.css";
 
@@ -34,9 +35,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
-        {children}
-        <Toaster position="top-center" />
-        {process.env.NODE_ENV === "development" && <Agentation />}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
+          <Toaster position="top-center" />
+          {process.env.NODE_ENV === "development" && <Agentation />}
+        </ThemeProvider>
       </body>
     </html>
   );
