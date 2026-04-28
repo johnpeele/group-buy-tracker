@@ -47,7 +47,7 @@ export function TopNav({ displayName, isAdmin }: TopNavProps) {
     <header className="hidden md:flex sticky top-0 z-50 items-center justify-between h-14 px-6 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
       {/* Logo */}
       <Link href="/" className="shrink-0">
-        <Image src="/logo.svg" alt="Logo" width={120} height={32} style={{ height: "auto" }} priority />
+        <Image src="/logo.svg" alt="Logo" width={212} height={44} style={{ width: "120px", height: "auto" }} preload />
       </Link>
 
       {/* Nav links */}
@@ -77,7 +77,7 @@ export function TopNav({ displayName, isAdmin }: TopNavProps) {
       {/* Account dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="flex items-center gap-2 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 min-h-[44px]"
+          className="flex items-center gap-2 rounded-full min-h-11 cursor-pointer"
           aria-label="Account menu"
         >
           <Avatar className="h-8 w-8">
@@ -91,16 +91,12 @@ export function TopNav({ displayName, isAdmin }: TopNavProps) {
             <p className="text-sm font-medium">{displayName}</p>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => router.push("/account")}
-          >
+          <DropdownMenuItem onClick={() => router.push("/account")}>
             Account settings
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleSignOut}
-            className="text-red-600 dark:text-red-400 cursor-pointer"
+            variant="destructive"
           >
             Sign out
           </DropdownMenuItem>
