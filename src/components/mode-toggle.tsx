@@ -13,9 +13,15 @@ import {
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
+  const [open, setOpen] = React.useState(false);
+
+  function select(value: string) {
+    setTheme(value);
+    setOpen(false);
+  }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground"
         aria-label="Toggle theme"
@@ -28,21 +34,21 @@ export function ModeToggle() {
         <DropdownMenuGroup>
           <DropdownMenuCheckboxItem
             checked={theme === "light"}
-            onCheckedChange={() => setTheme("light")}
+            onCheckedChange={() => select("light")}
           >
             <SunIcon />
             Light
           </DropdownMenuCheckboxItem>
           <DropdownMenuCheckboxItem
             checked={theme === "dark"}
-            onCheckedChange={() => setTheme("dark")}
+            onCheckedChange={() => select("dark")}
           >
             <MoonIcon />
             Dark
           </DropdownMenuCheckboxItem>
           <DropdownMenuCheckboxItem
             checked={theme === "system"}
-            onCheckedChange={() => setTheme("system")}
+            onCheckedChange={() => select("system")}
           >
             <MonitorIcon />
             System
