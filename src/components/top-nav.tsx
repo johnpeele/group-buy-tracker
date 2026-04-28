@@ -48,7 +48,7 @@ export function TopNav({ displayName, isAdmin }: TopNavProps) {
     <header className="hidden md:flex sticky top-0 z-50 items-center justify-between h-14 px-6 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
       {/* Logo */}
       <Link href="/" className="shrink-0">
-        <Image src="/logo.svg" alt="Logo" width={212} height={44} style={{ width: "120px", height: "auto" }} className="dark:invert" preload />
+        <Image src="/logo.svg" alt="Logo" width={212} height={44} style={{ width: "120px", height: "auto" }} preload />
       </Link>
 
       {/* Nav links */}
