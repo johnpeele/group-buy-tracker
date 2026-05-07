@@ -3,6 +3,7 @@
 import * as React from "react";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useTiks } from "@rexa-developer/tiks/react";
 
 type WithViewTransition = Document & {
   startViewTransition: (cb: () => void) => { ready: Promise<void> };
@@ -11,8 +12,10 @@ type WithViewTransition = Document & {
 export function ModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const { warning } = useTiks();
 
   function toggle() {
+    warning();
     const next = resolvedTheme === "dark" ? "light" : "dark";
 
     if (!("startViewTransition" in document)) {
