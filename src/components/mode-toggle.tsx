@@ -11,18 +11,52 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+type WithViewTransition = Document & {
+  startViewTransition: (cb: () => void) => { ready: Promise<void> };
+};
+
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
 
   function select(value: string) {
-    setTheme(value);
     setOpen(false);
+
+    if (!("startViewTransition" in document)) {
+      setTheme(value);
+      return;
+    }
+
+    const rect = triggerRef.current?.getBoundingClientRect();
+    const x = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+    const y = rect ? rect.top + rect.height / 2 : window.innerHeight / 2;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
+
+    const transition = (document as WithViewTransition).startViewTransition(() => {
+      setTheme(value);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        { pseudoElement: "::view-transition-new(root)", duration: 600, easing: "ease-in-out" },
+      );
+    });
   }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
+        ref={triggerRef}
         className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground"
         aria-label="Toggle theme"
       >
