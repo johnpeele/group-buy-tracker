@@ -12,11 +12,11 @@ type WithViewTransition = Document & {
 export function ModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
-  const { warning } = useTiks();
+  const { toggle: playToggle } = useTiks();
 
   function toggle() {
-    warning();
     const next = resolvedTheme === "dark" ? "light" : "dark";
+    playToggle(next === "dark");
 
     if (!("startViewTransition" in document)) {
       setTheme(next);
