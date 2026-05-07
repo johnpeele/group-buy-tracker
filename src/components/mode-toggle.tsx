@@ -16,8 +16,25 @@ export function ModeToggle() {
   const [open, setOpen] = React.useState(false);
 
   function select(value: string) {
-    setTheme(value);
     setOpen(false);
+
+    if (!("startViewTransition" in document)) {
+      setTheme(value);
+      return;
+    }
+
+    const transition = (document as Document & {
+      startViewTransition: (cb: () => void) => { ready: Promise<void> };
+    }).startViewTransition(() => {
+      setTheme(value);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: ["inset(0 0 100% 0)", "inset(0)"] },
+        { pseudoElement: "::view-transition-new(root)", duration: 600 },
+      );
+    });
   }
 
   return (
